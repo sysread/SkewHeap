@@ -93,7 +93,6 @@ typedef struct SkewNode {
   struct SkewNode *left;
   struct SkewNode *right;
   SV *value;
-  SV *cmp;
 } skewnode_t;
 
 typedef struct SkewHeap {
@@ -102,13 +101,12 @@ typedef struct SkewHeap {
   SV *cmp;
 } skewheap_t;
 
-skewnode_t* new_node(SV *cmp, SV *value) {
+skewnode_t* new_node(SV *value) {
   skewnode_t *node;
   Newx(node, 1, skewnode_t);
   node->left  = NULL;
   node->right = NULL;
   node->value = newSVsv(value);
-  node->cmp   = cmp;
   return node;
 }
 
@@ -305,7 +303,7 @@ void _merge(skewheap_t *heap, skewnode_t *a, skewnode_t *b) {
 
 int put(SV *ref, SV *value) {
   skewheap_t *heap = SKEW(ref);
-  skewnode_t *node = new_node(heap->cmp, value);
+  skewnode_t *node = new_node(value);
 
   ++heap->size;
 

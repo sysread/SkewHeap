@@ -1,5 +1,6 @@
 {{$NEXT}}
 -bugfix: support anonymous sub in constructor
+-remove unused struct member
 
 0.01 2018-03-20
 -Initial release
