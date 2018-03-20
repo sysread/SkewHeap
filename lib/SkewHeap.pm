@@ -14,8 +14,7 @@ use Inline C => 'DATA', optimize => '-O2';
   my $heap = SkewHeap->new(sub{ $a <=> $b });
   $heap->put(42);
   $heap->put(35);
-  $heap->put(200);
-  $heap->put(62);
+  $heap->put(200, 62);
 
   $heap->top;  # 35
   $heap->size; # 4
@@ -55,7 +54,7 @@ it from the heap.
 
 =head2 put
 
-Inserts a new element into the heap.
+Inserts one or more new elements into the heap.
 
 =head2 take
 
@@ -301,19 +300,27 @@ void _merge(skewheap_t *heap, skewnode_t *a, skewnode_t *b) {
   }
 }
 
-int put(SV *ref, SV *value) {
+void put(SV *ref, ...) {
+  Inline_Stack_Vars;
+  Inline_Stack_Reset;
+
   skewheap_t *heap = SKEW(ref);
-  skewnode_t *node = new_node(value);
+  skewnode_t *node;
+  int i;
+ 
+  for (i = 1; i < Inline_Stack_Items; ++i) {
+    node = new_node(Inline_Stack_Item(i));
+    ++heap->size;
 
-  ++heap->size;
-
-  if (heap->root == NULL) {
-    heap->root = node;
-  } else {
-    _merge(heap, heap->root, node);
+    if (heap->root == NULL) {
+      heap->root = node;
+    } else {
+      _merge(heap, heap->root, node);
+    }
   }
 
-  return 1;
+  Inline_Stack_Push(sv_2mortal(newSViv(heap->size)));
+  Inline_Stack_Done;
 }
 
 void take(SV *ref) {

@@ -11,12 +11,7 @@ subtest 'basics' => sub{
   ok my $heap = SkewHeap->new($cmp), 'ctor';
   ok my $heap_anon = SkewHeap->new(sub{ $a <=> $b }), 'ctor w/ anon sub';
 
-  my $size = 0;
-  foreach my $v (@shuffled) {
-    ok $heap->put($v), "put $v";
-    ok $heap->top <= $v, 'top';
-    is $heap->size, ++$size, 'size';
-  }
+  is $heap->put(@shuffled), scalar(@shuffled), "put";
 
   foreach my $v (@values) {
     is my $got = $heap->take, $v, "take $v";
@@ -51,12 +46,12 @@ subtest 'leaks' => sub{
 
   no_leaks_ok {
     my $heap = SkewHeap->new($cmp);
-    $heap->put($_) foreach @shuffled;
+    $heap->put(@shuffled);
   } 'put';
 
   no_leaks_ok {
     my $heap = SkewHeap->new($cmp);
-    $heap->put($_) foreach @shuffled;
+    $heap->put(@shuffled);
     local $_ = $heap->take while $heap->size > 0;
   } 'take';
 

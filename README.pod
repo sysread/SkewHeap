@@ -17,8 +17,7 @@ version 0.02
   my $heap = SkewHeap->new(sub{ $a <=> $b });
   $heap->put(42);
   $heap->put(35);
-  $heap->put(200);
-  $heap->put(62);
+  $heap->put(200, 62);
 
   $heap->top;  # 35
   $heap->size; # 4
@@ -58,7 +57,7 @@ it from the heap.
 
 =head2 put
 
-Inserts a new element into the heap.
+Inserts one or more new elements into the heap.
 
 =head2 take
 
