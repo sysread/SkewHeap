@@ -1,4 +1,4 @@
-requires 'perl', '5.010';
+requires 'perl', '5.012';
 
 requires 'Inline' => '0.80';
 requires 'Inline::C' => '0.78';
