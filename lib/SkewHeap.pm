@@ -144,17 +144,19 @@ void DESTROY(SV *ref) {
 }
 
 void _explain(skewnode_t *node, int depth) {
-  for (int i = 0; i < depth; ++i) printf("--");
+  int i;
+
+  for (i = 0; i < depth; ++i) printf("--");
   printf("VALUE: %ld\n", SvIV(node->value));
 
   if (node->left != NULL) {
-    for (int i = 0; i < depth; ++i) printf("--");
+    for (i = 0; i < depth; ++i) printf("--");
     printf("LEFT:\n");
     _explain(node->left, depth + 1);
   }
 
   if (node->right != NULL) {
-    for (int i = 0; i < depth; ++i) printf("--");
+    for (i = 0; i < depth; ++i) printf("--");
     printf("RIGHT:\n");
     _explain(node->right, depth + 1);
   }
