@@ -1,0 +1,6 @@
+.build
+SkewHeap-*
+*.swp
+cover_db
+_Inline*
+scratch.pl
