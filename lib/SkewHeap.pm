@@ -127,7 +127,7 @@ SV* new(const char *class, SV *cmp) {
   Newx(heap, 1, skewheap_t);
   heap->root = NULL;
   heap->size = 0;
-  heap->cmp = cmp;
+  heap->cmp  = newSVsv(cmp);
 
   obj = newSViv((IV) heap);
   ref = newRV_noinc(obj);
@@ -140,6 +140,7 @@ SV* new(const char *class, SV *cmp) {
 void DESTROY(SV *ref) {
   skewheap_t *heap = SKEW(ref);
   if (heap->root != NULL) free_node(heap->root);
+  SvREFCNT_dec(heap->cmp);
   Safefree(heap);
 }
 

@@ -9,6 +9,7 @@ my @shuffled = shuffle @values;
 
 subtest 'basics' => sub{
   ok my $heap = SkewHeap->new($cmp), 'ctor';
+  ok my $heap_anon = SkewHeap->new(sub{ $a <=> $b }), 'ctor w/ anon sub';
 
   my $size = 0;
   foreach my $v (@shuffled) {
