@@ -1,4 +1,6 @@
 {{$NEXT}}
+
+0.03 2018-03-28
 -Inline config to make initialization friendly for distribution
 
 0.02 2018-03-20
