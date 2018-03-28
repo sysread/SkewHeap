@@ -1,4 +1,5 @@
 {{$NEXT}}
+-Inline config to make initialization friendly for distribution
 
 0.02 2018-03-20
 -new: put() accepts multiple values

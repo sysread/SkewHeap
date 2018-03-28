@@ -3,7 +3,14 @@ package SkewHeap;
 
 use strict;
 use warnings;
-use Inline C => 'DATA', optimize => '-O2';
+
+use Inline
+  C        => 'DATA',
+  name     => 'SkewHeap',
+  version  => eval '$SkewHeap::VERSION',
+  optimize => '-O2';
+
+Inline->init;
 
 1;
 
