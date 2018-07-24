@@ -1,6 +1,6 @@
 package SkewHeap;
 
-our $XS_VERSION = our $VERSION = '0.03_01';
+our $XS_VERSION = our $VERSION = '0.03_02';
 $VERSION =~ tr/_//;
 
 use strict;
@@ -66,7 +66,8 @@ two heaps together.
 
 Creates a new C<SkewHeap> which will be sorted in ascending order using the
 comparison subroutine passed in. This sub has the same semantics as Perl's
-C<sort>, returning -1 if C<$a < $b>, 1 if C<$a > $b>, or 0 if C<$a == $b>.
+C<sort>, returning -1 if C<$a E<lt> $b>, 1 if C<$a E<gt> $b>, or 0 if
+C<$a == $b>.
 
 =head2 size
 
