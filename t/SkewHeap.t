@@ -1,3 +1,4 @@
+use ExtUtils::testlib;
 use Test2::V0;
 use Test::LeakTrace qw(no_leaks_ok);
 use List::Util qw(shuffle);
@@ -8,14 +9,21 @@ my @values = 0 .. 20;
 my @shuffled = shuffle @values;
 
 subtest 'basics' => sub{
-  ok my $heap = SkewHeap->new($cmp), 'ctor';
-  ok my $heap_anon = SkewHeap->new(sub{ $a <=> $b }), 'ctor w/ anon sub';
+  ok(SkewHeap->new($cmp), 'ctor');
+  ok(SkewHeap->new(sub{ $a <=> $b }), 'ctor w/ anon sub');
+
+  ok my $heap = skewheap{ $a <=> $b }, 'sugar ctor';
 
   is $heap->put(@shuffled), scalar(@shuffled), "put";
 
   foreach my $v (@values) {
     is my $got = $heap->take, $v, "take $v";
-    ok !defined $heap->top || $heap->top >= $got, 'top';
+
+    if ($heap->size == 0) {
+      is $heap->top, U, 'top';
+    } else {
+      ok $got < $heap->top, 'top';
+    }
   }
 };
 
@@ -67,6 +75,16 @@ subtest 'leaks' => sub{
     my $i = $heap->size;
   } 'size';
 
+  no_leaks_ok {
+    my $heap = skewheap{ $a <=> $b };
+    $heap->put(@shuffled);
+
+    foreach (@shuffled) {
+      my $item = $heap->take;
+      my $top  = $heap->top;
+      my $size = $heap->size;
+    }
+  } 'combined';
 };
 
 done_testing;

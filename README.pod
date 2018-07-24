@@ -1,20 +1,12 @@
-=pod
-
-=encoding UTF-8
-
 =head1 NAME
 
 SkewHeap - A fast heap structure for Perl
-
-=head1 VERSION
-
-version 0.03
 
 =head1 SYNOPSIS
 
   use SkewHeap;
 
-  my $heap = SkewHeap->new(sub{ $a <=> $b });
+  my $heap = skewheap{ $a <=> $b };
   $heap->put(42);
   $heap->put(35);
   $heap->put(200, 62);
@@ -40,7 +32,7 @@ two heaps together.
 
 =head1 METHODS
 
-=head2 new
+=head2 skewheap
 
 Creates a new C<SkewHeap> which will be sorted in ascending order using the
 comparison subroutine passed in. This sub has the same semantics as Perl's
@@ -68,15 +60,3 @@ Removes and returns the next element from the heap.
 Destructively merges another heap into itself. After calling merge, the second
 heap is empty and the first holds all elements from both heaps.
 
-=head1 AUTHOR
-
-Jeff Ober <sysread@fastmail.fm>
-
-=head1 COPYRIGHT AND LICENSE
-
-This software is copyright (c) 2018 by Jeff Ober.
-
-This is free software; you can redistribute it and/or modify it under
-the same terms as the Perl 5 programming language system itself.
-
-=cut
