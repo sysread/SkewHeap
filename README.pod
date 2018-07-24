@@ -1,6 +1,6 @@
 =head1 NAME
 
-SkewHeap - A fast heap structure for Perl
+SkewHeap - A fast and flexible heap structure
 
 =head1 SYNOPSIS
 
@@ -25,7 +25,7 @@ SkewHeap - A fast heap structure for Perl
 
 A skew heap is a memory efficient, self-adjusting heap (or priority queue) with
 an amortized performance of O(log n) (or better). C<SkewHeap> is implemented in
-C (using L<Inline::C>).
+C<C>/C<XS>.
 
 The key feature of a skew heap is the ability to quickly and efficiently merge
 two heaps together.
@@ -59,4 +59,14 @@ Removes and returns the next element from the heap.
 
 Destructively merges another heap into itself. After calling merge, the second
 heap is empty and the first holds all elements from both heaps.
+
+=head1 AUTHOR
+
+Jeff Ober <sysread@fastmail.fm>
+
+=head1 COPYRIGHT AND LICENSE
+
+This software is copyright (c) 2018 by Jeff Ober. This is free software; you
+can redistribute it and/or modify it under the same terms as the Perl 5
+programming language system itself.
 
