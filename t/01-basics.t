@@ -24,4 +24,18 @@ foreach my $v (@values) {
   }
 }
 
+foreach my $v (@values) {
+  $heap->put($v);
+}
+
+foreach my $v (@values) {
+  is my $got = $heap->take, $v, "take $v";
+
+  if ($heap->size == 0) {
+    is $heap->top, U, 'top';
+  } else {
+    ok $got < $heap->top, 'top';
+  }
+}
+
 done_testing;
