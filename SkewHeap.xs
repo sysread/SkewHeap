@@ -30,6 +30,7 @@
 #define cxinc() Perl_cxinc(aTHX)
 #endif
 
+
 typedef struct SkewNode {
   struct SkewNode *left;
   struct SkewNode *right;
@@ -39,28 +40,47 @@ typedef struct SkewNode {
 typedef struct SkewHeap {
   skewnode_t *root;
   IV size;
-  CV *cmp;
+  SV *cmp;
 } skewheap_t;
 
+
+static
 skewnode_t* new_node(pTHX_ SV *value) {
   skewnode_t *node;
   Newx(node, 1, skewnode_t);
   node->left  = NULL;
   node->right = NULL;
-  node->value = value;
-  SvREFCNT_inc(value);
+  node->value = newSVsv(value);
   return node;
 }
 
 static
-void free_node(pTHX_ skewnode_t *node) {
-  if (node->left != NULL)  free_node(aTHX_ node->left);
-  if (node->right != NULL) free_node(aTHX_ node->right);
-  Safefree(node);
+skewnode_t* clone_node(pTHX_ skewnode_t *node) {
+  if (node == NULL) {
+    return NULL;
+  }
+
+  skewnode_t *new_node;
+
+  Newx(new_node, 1, skewnode_t);
+  new_node->value = newSVsv(node->value);
+  new_node->left  = clone_node(node->left);
+  new_node->right = clone_node(node->right);
+
+  return new_node;
 }
 
 static
-SV* new(pTHX_ const char *class, CV *cmp) {
+void free_node(pTHX_ skewnode_t *node) {
+  if (node->left  != NULL) free_node(aTHX_ node->left);
+  if (node->right != NULL) free_node(aTHX_ node->right);
+  SvREFCNT_dec(node->value);
+  Safefree(node);
+}
+
+
+static
+SV* new(pTHX_ const char *class, SV *cmp) {
   skewheap_t *heap;
   SV *obj;
   SV *ref;
@@ -69,6 +89,7 @@ SV* new(pTHX_ const char *class, CV *cmp) {
   heap->root = NULL;
   heap->size = 0;
   heap->cmp  = cmp;
+  SvREFCNT_inc(heap->cmp);
 
   obj = newSViv((IV) heap);
   ref = newRV_noinc(obj);
@@ -82,8 +103,10 @@ static
 void DESTROY(pTHX_ SV *ref) {
   skewheap_t *heap = SKEW(ref);
   if (heap->root != NULL) free_node(aTHX_ heap->root);
+  SvREFCNT_dec(heap->cmp);
   Safefree(heap);
 }
+
 
 static
 size_t walk_tree(skewnode_t *node, skewnode_t *nodes[], size_t idx) {
@@ -119,7 +142,7 @@ SV* to_array(pTHX_ SV *ref) {
 }
 
 static
-void sort_nodes(pTHX_ skewnode_t *nodes[], int length, CV *cmp) {
+void sort_nodes(pTHX_ skewnode_t *nodes[], int length, SV *cmp) {
   skewnode_t *tmp, *x;
   int p, j;
   int start = 0;
@@ -135,6 +158,13 @@ void sort_nodes(pTHX_ skewnode_t *nodes[], int length, CV *cmp) {
   GV *agv, *bgv, *gv;
   HV *stash;
 
+  // code value from sv code ref
+  CV *cv = sv_2cv(cmp, &stash, &gv, 0);
+
+  if (cv == Nullcv) {
+    croak("Not a subroutine reference");
+  }
+
   agv = gv_fetchpv("main::a", GV_ADD, SVt_PV);
   bgv = gv_fetchpv("main::b", GV_ADD, SVt_PV);
   SAVESPTR(GvSV(agv));
@@ -143,7 +173,7 @@ void sort_nodes(pTHX_ skewnode_t *nodes[], int length, CV *cmp) {
   dMULTICALL;
   I8 gimme = G_SCALAR;
 
-  PUSH_MULTICALL(cmp);
+  PUSH_MULTICALL(cv);
   // multicall ready
 
   while (top >= 0) {
@@ -187,7 +217,74 @@ void sort_nodes(pTHX_ skewnode_t *nodes[], int length, CV *cmp) {
 }
 
 static
-void _merge(pTHX_ skewheap_t *heap, skewnode_t *a, skewnode_t *b) {
+void _merge(pTHX_ SV *heap_ref, SV *heap_ref_a, SV *heap_ref_b) {
+  skewheap_t *heap = SKEW(heap_ref);
+
+  skewheap_t *heap_a = SKEW(heap_ref_a);
+  skewheap_t *heap_b = SKEW(heap_ref_b);
+  skewnode_t *a = heap_a->root;
+  skewnode_t *b = heap_b->root;
+
+  size_t size = heap_a->size + heap_b->size;
+
+  skewnode_t *todo[size];
+  skewnode_t *nodes[size];
+  skewnode_t *node, *prev, *tmp_node;
+
+  int tidx = 0;
+  int nidx = 0;
+  int i;
+
+  // Set the new heap's size
+  heap->size = size;
+
+  // Cut the right subtree from each path
+  if (a != NULL) todo[tidx++] = a;
+  if (b != NULL) todo[tidx++] = b;
+
+  while (tidx > 0) {
+    node = todo[--tidx];
+
+    tmp_node = new_node(aTHX_ node->value);
+    tmp_node->left = clone_node(node->left);
+
+    if (node->right != NULL) {
+      todo[tidx] = node->right;
+      ++tidx;
+    }
+
+    nodes[nidx] = tmp_node;
+    ++nidx;
+  }
+
+  if (nidx > 0) {
+    // Sort the subtrees
+    if (nidx > 1) {
+      sort_nodes(aTHX_ nodes, nidx, heap->cmp);
+    }
+
+    // Recombine subtrees
+    for (i = nidx; i > 1; --i) {
+      node = nodes[i - 1]; // last node
+      prev = nodes[i - 2]; // second to last node
+
+      // Set penultimate node's right child to its left (and only) subtree
+      if (prev->left != NULL) {
+        prev->right = prev->left;
+      }
+
+      // Set its left child to the ultimate node
+      prev->left = node;
+    }
+
+    heap->root = nodes[0];
+  }
+
+  return;
+}
+
+static
+void _merge_destructive(pTHX_ skewheap_t *heap, skewnode_t *a, skewnode_t *b) {
   skewnode_t* todo[heap->size];
   skewnode_t* nodes[heap->size];
   skewnode_t* node;
@@ -258,7 +355,7 @@ IV put_one(pTHX_ SV *ref, SV *value) {
   if (heap->root == NULL) {
     heap->root = node;
   } else {
-    _merge(aTHX_ heap, heap->root, node);
+    _merge_destructive(aTHX_ heap, heap->root, node);
   }
 
   return heap->size;
@@ -271,9 +368,9 @@ SV* take(pTHX_ SV *ref) {
   SV *item;
 
   if (root != NULL) {
-    item = root->value;
+    item = newSVsv(root->value);
     --heap->size;
-    _merge(aTHX_ heap, root->left, root->right);
+    _merge_destructive(aTHX_ heap, root->left, root->right);
     root->left  = NULL;
     root->right = NULL;
     free_node(aTHX_ root);
@@ -300,21 +397,10 @@ IV size(pTHX_ SV *ref) {
 }
 
 static
-IV merge(pTHX_ SV *heap_a, SV *heap_b) {
-  skewheap_t *a = SKEW(heap_a);
-  skewheap_t *b = SKEW(heap_b);
-
-  if (a->root == NULL) {
-    a->root = b->root;
-  } else if (b->root != NULL) {
-    _merge(aTHX_ a, a->root, b->root);
-  }
-
-  a->size += b->size;
-  b->size = 0;
-  b->root = NULL;
-
-  return a->size;
+SV* merge(pTHX_ SV *heap_a, SV *heap_b) {
+  SV *new_heap = new(aTHX_ "SkewHeap", SKEW(heap_a)->cmp);
+  _merge(aTHX_ new_heap, heap_a, heap_b);
+  return new_heap;
 }
 
 static
@@ -322,7 +408,11 @@ void _explain(SV *out, skewnode_t *node, int depth) {
   int i;
 
   for (i = 0; i < depth; ++i) sv_catpvn(out, "--", 2);
-  sv_catpvn(out, "VALUE: ", 7);
+  sv_catpvf(out, "NODE<%p>\n", (void*)node);
+  ++depth;
+
+  for (i = 0; i < depth; ++i) sv_catpvn(out, "--", 2);
+  sv_catpvf(out, "VALUE<%p>: ", (void*)node->value);
   sv_catsv(out, sv_mortalcopy(node->value));
   sv_catpvn(out, "\n", 1);
 
@@ -356,11 +446,12 @@ SV* explain(SV *ref) {
 
 MODULE = SkewHeap  PACKAGE = SkewHeap
 
-PROTOTYPES: DISABLE
+PROTOTYPES: ENABLE
 
 VERSIONCHECK: ENABLE
 
-SV* new(const char *class, CV *cmp)
+SV* new(const char *class, SV *cmp)
+  PROTOTYPE: $&
   CODE:
     RETVAL = new(aTHX_ class, cmp);
   OUTPUT:
@@ -388,7 +479,7 @@ IV size(SV *heap)
   OUTPUT:
     RETVAL
 
-IV merge(SV *heap_a, SV *heap_b)
+SV* merge(SV *heap_a, SV *heap_b)
   CODE:
     RETVAL = merge(aTHX_ heap_a, heap_b);
   OUTPUT:

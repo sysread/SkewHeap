@@ -88,8 +88,7 @@ Removes and returns the next element from the heap.
 
 =head2 merge
 
-Destructively merges another heap into itself. After calling merge, the second
-heap is empty and the first holds all elements from both heaps.
+Non-destructively merges two heaps into a new heap. Returns the new heap.
 
 =head1 AUTHOR
 
