@@ -86,6 +86,39 @@ void DESTROY(pTHX_ SV *ref) {
 }
 
 static
+size_t walk_tree(skewnode_t *node, skewnode_t *nodes[], size_t idx) {
+  size_t inc = 0;
+  nodes[ idx ] = node;
+  ++inc;
+
+  if (node->left != NULL) {
+    inc += walk_tree(node->left, nodes, idx + inc);
+  }
+
+  if (node->right != NULL) {
+    inc += walk_tree(node->right, nodes, idx + inc);
+  }
+
+  return inc;
+}
+
+static
+SV* to_array(pTHX_ SV *ref) {
+  skewheap_t *heap = SKEW(ref);
+  skewnode_t *nodes[ heap->size ];
+  AV *array = newAV();
+  size_t i;
+
+  walk_tree(heap->root, nodes, 0);
+
+  for (i = 0; i < heap->size; ++i) {
+    av_push(array, newSVsv( nodes[i]->value ));
+  }
+
+  return newRV_noinc( (SV*) array );
+}
+
+static
 void sort_nodes(pTHX_ skewnode_t *nodes[], int length, CV *cmp) {
   skewnode_t *tmp, *x;
   int p, j;
@@ -284,6 +317,42 @@ IV merge(pTHX_ SV *heap_a, SV *heap_b) {
   return a->size;
 }
 
+static
+void _explain(SV *out, skewnode_t *node, int depth) {
+  int i;
+
+  for (i = 0; i < depth; ++i) sv_catpvn(out, "--", 2);
+  sv_catpvn(out, "VALUE: ", 7);
+  sv_catsv(out, sv_mortalcopy(node->value));
+  sv_catpvn(out, "\n", 1);
+
+  if (node->left != NULL) {
+    for (i = 0; i < depth; ++i) sv_catpvn(out, "--", 2);
+    sv_catpvn(out, "LEFT:\n", 6);
+    _explain(out, node->left, depth + 1);
+  }
+
+  if (node->right != NULL) {
+    for (i = 0; i < depth; ++i) sv_catpvn(out, "--", 2);
+    sv_catpvn(out, "RIGHT:\n", 7);
+    _explain(out, node->right, depth + 1);
+  }
+}
+
+static
+SV* explain(SV *ref) {
+  skewheap_t *heap = SKEW(ref);
+  SV *out = newSVpvn("", 0);
+
+  sv_catpvn(out, "SKEWHEAP:\n", 10);
+
+  if (heap->root != NULL) {
+    _explain(out, heap->root, 2);
+  }
+
+  return out;
+}
+
 
 MODULE = SkewHeap  PACKAGE = SkewHeap
 
@@ -330,4 +399,17 @@ SV* top(SV *heap)
     RETVAL = top(aTHX_ heap);
   OUTPUT:
     RETVAL
+
+SV* to_array(SV *heap)
+  CODE:
+    RETVAL = to_array(aTHX_ heap);
+  OUTPUT:
+    RETVAL
+
+SV *explain(SV *heap)
+  CODE:
+    RETVAL = explain(aTHX_ heap);
+  OUTPUT:
+    RETVAL
+
 

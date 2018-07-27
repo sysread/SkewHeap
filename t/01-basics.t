@@ -38,4 +38,29 @@ foreach my $v (@values) {
   }
 }
 
+subtest 'to_array' => sub{
+  $heap->put(@shuffled);
+  is $heap->size, scalar(@shuffled), 'number of items in heap';
+
+  my $items = $heap->to_array;
+
+  is scalar( @$items ), scalar(@shuffled), 'number of items in list';
+  is $heap->size, scalar(@shuffled), 'number of items in heap';
+
+  undef $items;
+  subtest 'gc list leaves heap intact' => sub{
+    is $heap->size, scalar( @shuffled ), 'size';
+
+    foreach my $v (@values) {
+      is my $got = $heap->take, $v, "take $v";
+
+      if ($heap->size == 0) {
+        is $heap->top, U, 'top';
+      } else {
+        ok $got < $heap->top, 'top';
+      }
+    }
+  };
+};
+
 done_testing;
