@@ -404,7 +404,7 @@ SV* merge(pTHX_ SV *heap_a, SV *heap_b) {
 }
 
 static
-void _explain(SV *out, skewnode_t *node, int depth) {
+void _explain(pTHX_ SV *out, skewnode_t *node, int depth) {
   int i;
 
   for (i = 0; i < depth; ++i) sv_catpvn(out, "--", 2);
@@ -419,25 +419,25 @@ void _explain(SV *out, skewnode_t *node, int depth) {
   if (node->left != NULL) {
     for (i = 0; i < depth; ++i) sv_catpvn(out, "--", 2);
     sv_catpvn(out, "LEFT:\n", 6);
-    _explain(out, node->left, depth + 1);
+    _explain(aTHX_ out, node->left, depth + 1);
   }
 
   if (node->right != NULL) {
     for (i = 0; i < depth; ++i) sv_catpvn(out, "--", 2);
     sv_catpvn(out, "RIGHT:\n", 7);
-    _explain(out, node->right, depth + 1);
+    _explain(aTHX_ out, node->right, depth + 1);
   }
 }
 
 static
-SV* explain(SV *ref) {
+SV* explain(pTHX_ SV *ref) {
   skewheap_t *heap = SKEW(ref);
   SV *out = newSVpvn("", 0);
 
   sv_catpvn(out, "SKEWHEAP:\n", 10);
 
   if (heap->root != NULL) {
-    _explain(out, heap->root, 2);
+    _explain(aTHX_ out, heap->root, 2);
   }
 
   return out;
