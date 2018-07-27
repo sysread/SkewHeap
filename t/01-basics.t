@@ -7,7 +7,7 @@ my $cmp = sub{ $a <=> $b };
 my @values = 0 .. 20;
 my @shuffled = shuffle @values;
 
-ok(SkewHeap->new($cmp), 'ctor');
+ok(SkewHeap->new($cmp), 'ctor w/ sub ref');
 ok(SkewHeap->new(sub{ $a <=> $b }), 'ctor w/ anon sub');
 
 ok my $heap = skewheap{ $a <=> $b }, 'sugar ctor';

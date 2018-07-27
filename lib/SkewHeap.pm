@@ -1,6 +1,6 @@
 package SkewHeap;
 
-our $XS_VERSION = our $VERSION = '0.04';
+our $XS_VERSION = our $VERSION = '0.04_01';
 $VERSION =~ tr/_//;
 
 use strict;

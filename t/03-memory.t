@@ -4,31 +4,30 @@ use Test::LeakTrace qw(no_leaks_ok);
 use List::Util qw(shuffle);
 use SkewHeap;
 
-my $cmp = sub{ $a <=> $b };
 my @values = 0 .. 20;
 my @shuffled = shuffle @values;
 
-no_leaks_ok { my $heap = SkewHeap->new($cmp) } 'ctor';
+no_leaks_ok { my $heap = skewheap{ $a <=> $b } } 'ctor';
 
 no_leaks_ok {
-  my $heap = SkewHeap->new($cmp);
+  my $heap = skewheap{ $a <=> $b };
   $heap->put(@shuffled);
 } 'put';
 
 no_leaks_ok {
-  my $heap = SkewHeap->new($cmp);
+  my $heap = skewheap{ $a <=> $b };
   $heap->put(@shuffled);
   local $_ = $heap->take while $heap->size > 0;
 } 'take';
 
 no_leaks_ok {
-  my $heap = SkewHeap->new($cmp);
+  my $heap = skewheap{ $a <=> $b };
   $heap->put(42);
   my $v = $heap->top;
 } 'top';
 
 no_leaks_ok {
-  my $heap = SkewHeap->new($cmp);
+  my $heap = skewheap{ $a <=> $b };
   $heap->put(42);
   my $i = $heap->size;
 } 'size';

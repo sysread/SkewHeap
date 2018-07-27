@@ -3,12 +3,11 @@ use Test2::V0;
 use List::Util qw(shuffle);
 use SkewHeap;
 
-my $cmp = sub{ $a <=> $b };
 my @values = 0 .. 20;
 my @shuffled = shuffle @values;
 
-my $h1 = SkewHeap->new($cmp);
-my $h2 = SkewHeap->new($cmp);
+my $h1 = skewheap{ $a <=> $b };
+my $h2 = skewheap{ $a <=> $b };
 
 foreach (1 .. 10) {
   if ($_ % 2 == 0) {
