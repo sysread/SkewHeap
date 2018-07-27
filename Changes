@@ -1,3 +1,6 @@
+0.05 2018-??-??
+-bugfix: define cxinc as Perl_cxinc when not defined in perls w/ MULTICALL_PUSH bug
+
 0.04 2018-07-25
 -Switch to vanilla XS
 -Switch to ExtUtils::MakeMaker

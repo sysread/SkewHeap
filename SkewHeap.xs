@@ -22,6 +22,14 @@
 #define SKEW(obj) ((skewheap_t*) SvIV(SvRV(obj)))
 #endif
 
+/*
+ * Thanks again, MLEHMANN:
+ *   http://grokbase.com/t/perl/perl5-porters/097tr5nw6b/perl-67894-multicall-push-requires-perl-core
+ */
+#ifndef cxinc
+#define cxinc Perl_cxinc
+#endif
+
 typedef struct SkewNode {
   struct SkewNode *left;
   struct SkewNode *right;
