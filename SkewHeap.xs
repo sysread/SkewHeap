@@ -513,7 +513,7 @@ SV* to_array(SV *heap)
   OUTPUT:
     RETVAL
 
-SV *explain(SV *heap)
+SV* explain(SV *heap)
   CODE:
     RETVAL = explain(aTHX_ heap);
   OUTPUT:
