@@ -16,18 +16,6 @@ use parent 'Exporter';
 
 our @EXPORT = qw(skewheap);
 
-sub skewheap (&) {
-  my $cmp  = shift;
-  my $heap = SkewHeap->new($cmp);
-  return $heap;
-}
-
-sub put {
-  my $self = shift;
-  $self->put_one($_) foreach @_;
-  $self->size;
-}
-
 =head1 NAME
 
 SkewHeap - A fast and flexible heap structure
@@ -49,7 +37,7 @@ SkewHeap - A fast and flexible heap structure
   $heap->take; # 62
   $heap->take; # 200
 
-  $heap->merge($other_skewheap);
+  my $merged_heap = $heap->merge($other_skewheap);
 
 =head1 DESCRIPTION
 

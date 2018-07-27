@@ -457,6 +457,13 @@ SV* new(const char *class, SV *cmp)
   OUTPUT:
     RETVAL
 
+SV* skewheap(SV *cmp)
+  PROTOTYPE: &
+  CODE:
+    RETVAL = new(aTHX_ "SkewHeap", cmp);
+  OUTPUT:
+    RETVAL
+
 void DESTROY(SV *heap)
   CODE:
     DESTROY(aTHX_ heap);
@@ -464,6 +471,15 @@ void DESTROY(SV *heap)
 IV put_one(SV *heap, SV *value)
   CODE:
     RETVAL = put_one(aTHX_ heap, value);
+  OUTPUT:
+    RETVAL
+
+IV put(SV *heap, ...)
+  CODE:
+    size_t i;
+    for (i = 1; i < items; ++i) {
+      RETVAL = put_one(aTHX_ heap, ST(i));
+    }
   OUTPUT:
     RETVAL
 

@@ -19,7 +19,7 @@ SkewHeap - A fast and flexible heap structure
   $heap->take; # 62
   $heap->take; # 200
 
-  $heap->merge($other_skewheap);
+  my $merged_heap = $heap->merge($other_skewheap);
 
 =head1 DESCRIPTION
 
