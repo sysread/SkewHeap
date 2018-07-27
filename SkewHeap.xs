@@ -64,8 +64,8 @@ skewnode_t* clone_node(pTHX_ skewnode_t *node) {
 
   Newx(new_node, 1, skewnode_t);
   new_node->value = newSVsv(node->value);
-  new_node->left  = clone_node(node->left);
-  new_node->right = clone_node(node->right);
+  new_node->left  = clone_node(aTHX_ node->left);
+  new_node->right = clone_node(aTHX_ node->right);
 
   return new_node;
 }
@@ -246,7 +246,7 @@ void _merge(pTHX_ SV *heap_ref, SV *heap_ref_a, SV *heap_ref_b) {
     node = todo[--tidx];
 
     tmp_node = new_node(aTHX_ node->value);
-    tmp_node->left = clone_node(node->left);
+    tmp_node->left = clone_node(aTHX_ node->left);
 
     if (node->right != NULL) {
       todo[tidx] = node->right;
