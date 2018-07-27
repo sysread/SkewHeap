@@ -52,12 +52,14 @@ skewnode_t* new_node(pTHX_ SV *value) {
   return node;
 }
 
+static
 void free_node(pTHX_ skewnode_t *node) {
   if (node->left != NULL)  free_node(aTHX_ node->left);
   if (node->right != NULL) free_node(aTHX_ node->right);
   Safefree(node);
 }
 
+static
 SV* new(pTHX_ const char *class, CV *cmp) {
   skewheap_t *heap;
   SV *obj;
@@ -76,12 +78,14 @@ SV* new(pTHX_ const char *class, CV *cmp) {
   return ref;
 }
 
+static
 void DESTROY(pTHX_ SV *ref) {
   skewheap_t *heap = SKEW(ref);
   if (heap->root != NULL) free_node(aTHX_ heap->root);
   Safefree(heap);
 }
 
+static
 void sort_nodes(pTHX_ skewnode_t *nodes[], int length, CV *cmp) {
   skewnode_t *tmp, *x;
   int p, j;
@@ -149,6 +153,7 @@ void sort_nodes(pTHX_ skewnode_t *nodes[], int length, CV *cmp) {
   POP_MULTICALL;
 }
 
+static
 void _merge(pTHX_ skewheap_t *heap, skewnode_t *a, skewnode_t *b) {
   skewnode_t* todo[heap->size];
   skewnode_t* nodes[heap->size];
@@ -209,6 +214,7 @@ void _merge(pTHX_ skewheap_t *heap, skewnode_t *a, skewnode_t *b) {
   }
 }
 
+static
 IV put_one(pTHX_ SV *ref, SV *value) {
   skewheap_t *heap = SKEW(ref);
   skewnode_t *node;
@@ -225,6 +231,7 @@ IV put_one(pTHX_ SV *ref, SV *value) {
   return heap->size;
 }
 
+static
 SV* take(pTHX_ SV *ref) {
   skewheap_t *heap = SKEW(ref);
   skewnode_t *root = heap->root;
@@ -245,6 +252,7 @@ SV* take(pTHX_ SV *ref) {
   return item;
 }
 
+static
 SV* top(pTHX_ SV *ref) {
   skewheap_t *heap = SKEW(ref);
   return heap->root == NULL
@@ -252,11 +260,13 @@ SV* top(pTHX_ SV *ref) {
       : newSVsv(heap->root->value);
 }
 
+static
 IV size(pTHX_ SV *ref) {
   skewheap_t *heap = SKEW(ref);
   return heap->size;
 }
 
+static
 IV merge(pTHX_ SV *heap_a, SV *heap_b) {
   skewheap_t *a = SKEW(heap_a);
   skewheap_t *b = SKEW(heap_b);
