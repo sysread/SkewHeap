@@ -1,4 +1,4 @@
-0.05 2018-??-??
+0.05 2018-07-31
 -bugfix: define cxinc as Perl_cxinc when not defined in perls w/ MULTICALL_PUSH bug
 -feature: to_array() returns unordered array ref of values in the heap
 -feature: explain() generates a string describing the structure of the tree
