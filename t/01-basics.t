@@ -14,7 +14,6 @@ ok my $heap = skewheap{ $a <=> $b }, 'sugar ctor';
 
 is $heap->put(@shuffled), scalar(@shuffled), "put";
 
-=cut
 foreach my $v (@values) {
   is my $got = $heap->take, $v, "take $v";
 
@@ -63,6 +62,5 @@ subtest 'to_array' => sub{
     }
   };
 };
-=cut
 
 done_testing;
